@@ -25,7 +25,7 @@ public class Carrito {
 
     private String usuario_id;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     private List<ItemCarrito> items;
 
     @Column
