@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 public class ItemCarrito {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
     private String productoId; // referencia al id del producto que esta en otro microservicio
     private Integer cantidad;
     private String nombreProducto; // referencia al nombre de producto que esta en otro microservicio
