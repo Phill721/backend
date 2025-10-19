@@ -1,3 +1,6 @@
+@Entity
+@Table(name = "roles")
+
 public enum Roles {
-    ADMIN, USER
+    ADMIN, USER, VENDEDOR
 }
