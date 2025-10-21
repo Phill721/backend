@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.example.MicroUsuarios.model.Roles;
 import com.example.MicroUsuarios.model.Usuario;
 import com.example.MicroUsuarios.repository.UsuarioRepository;
 
@@ -37,6 +38,12 @@ public class UsuarioService {
         usuario.setNombre(usuarioActualizado.getNombre());
         usuario.setEmail(usuarioActualizado.getEmail());
         usuario.setPassword(usuarioActualizado.getPassword());
+        usuario.setRol(usuarioActualizado.getRol());
         return usuarioRepository.save(usuario);
+    }
+
+    // Nuevo método para buscar usuarios por rol
+    public List<Usuario> buscarUsuariosPorRol(Roles rol) {
+        return usuarioRepository.findByRol(rol);
     }
 }
