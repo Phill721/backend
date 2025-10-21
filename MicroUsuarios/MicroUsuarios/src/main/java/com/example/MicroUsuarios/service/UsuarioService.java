@@ -32,14 +32,11 @@ public class UsuarioService {
     }
 
     public Usuario actualizarUsuario(Long id, Usuario usuarioActualizado) {
-        return usuarioRepository.findById(id).map(usuario -> {
-            usuario.setNombre(usuarioActualizado.getNombre());
-            usuario.setEmail(usuarioActualizado.getEmail());
-            usuario.setPassword(usuarioActualizado.getPassword());
-            return usuarioRepository.save(usuario);
-        }).orElseGet(() -> {
-            usuarioActualizado.setId(id);
-            return usuarioRepository.save(usuarioActualizado);
-        });
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id: " + id));
+        usuario.setNombre(usuarioActualizado.getNombre());
+        usuario.setEmail(usuarioActualizado.getEmail());
+        usuario.setPassword(usuarioActualizado.getPassword());
+        return usuarioRepository.save(usuario);
     }
 }
