@@ -13,41 +13,49 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import com.huertohogarJV.backend.Models.Carrito;
+
+import com.huertohogarJV.backend.DTOs.CarritoDTO;
 import com.huertohogarJV.backend.Service.CarritoService;
 
 @RestController
 @RequestMapping("api/carrito")
 public class CarritoController {
+
     @Autowired
     private CarritoService carritoService;
 
+    // Crear carrito
     @PostMapping
-    public ResponseEntity<Carrito> crearCarrito(@RequestBody Carrito carrito){
-        Carrito newCarrito = carritoService.crearCarrito(carrito);
-        return ResponseEntity.status(HttpStatus.CREATED).body(newCarrito);
+    public ResponseEntity<CarritoDTO> crearCarrito(@RequestBody CarritoDTO carritoDTO) {
+        CarritoDTO nuevoCarrito = carritoService.crearCarrito(carritoDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoCarrito);
     }
 
+    // Listar carritos
     @GetMapping
-    public List<Carrito> listarCarritos(){
-        return carritoService.listarCarritos();
+    public ResponseEntity<List<CarritoDTO>> listarCarritos() {
+        List<CarritoDTO> carritos = carritoService.listarCarritos();
+        return ResponseEntity.ok(carritos);
     }
 
+    // Buscar por id
     @GetMapping("/{id}")
-    public ResponseEntity<Carrito> buscarxid(@PathVariable Long id){
+    public ResponseEntity<CarritoDTO> buscarxid(@PathVariable Long id) {
         return carritoService.buscarxid(id)
-            .map(ResponseEntity::ok)
-            .orElseGet(() -> ResponseEntity.notFound().build());
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    // Actualizar carrito
     @PutMapping("/{id}")
-    public ResponseEntity<Carrito> actualizarCarrito(@PathVariable Long id, @RequestBody Carrito newCarrito){
-        Carrito actualizado = carritoService.actualizarCarrito(id, newCarrito);
+    public ResponseEntity<CarritoDTO> actualizarCarrito(@PathVariable Long id, @RequestBody CarritoDTO carritoDTO) {
+        CarritoDTO actualizado = carritoService.actualizarCarrito(id, carritoDTO);
         return ResponseEntity.ok(actualizado);
     }
 
+    // Eliminar carrito
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminarCarrito(@PathVariable Long id){
+    public ResponseEntity<Void> eliminarCarrito(@PathVariable Long id) {
         carritoService.eliminarCarrito(id);
         return ResponseEntity.noContent().build();
     }

@@ -1,4 +1,4 @@
-package com.huertohogarJV.backend.Models;
+package com.huertohogarJV.backend.DTOs;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

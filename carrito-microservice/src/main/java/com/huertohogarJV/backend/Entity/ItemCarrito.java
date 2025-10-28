@@ -1,4 +1,4 @@
-package com.huertohogarJV.backend.Models;
+package com.huertohogarJV.backend.Entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
