@@ -14,20 +14,17 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Set OWNER_LC env
+        run: echo "OWNER_LC=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      # ------------------------------------------
-      # Preparar variable OWNER en minúsculas
-      # ------------------------------------------
-      - name: Set lowercase owner
-        run: echo "OWNER_LC=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-
       ############################################################
-      # CARRITO
+      # CARPETA: CARRITO
       ############################################################
       - name: Build carrito JAR
         run: |
@@ -35,10 +32,10 @@ jobs:
           mvn -B package -DskipTests
 
       - name: Build carrito image
-        run: docker build -t ghcr.io/${OWNER_LC}/carrito:latest ./carrito
+        run: docker build -t ghcr.io/${OWNER_LC}/carrito:latest ./carrito-microservice
 
       ############################################################
-      # CORE
+      # CARPETA: CORE
       ############################################################
       - name: Build core JAR
         run: |
@@ -46,18 +43,18 @@ jobs:
           mvn -B package -DskipTests
 
       - name: Build core image
-        run: docker build -t ghcr.io/${OWNER_LC}/core:latest ./core
+        run: docker build -t ghcr.io/${OWNER_LC}/core:latest ./core-microservicio
 
       ############################################################
-      # USUARIOS
+      # CARPETA: USUARIOS
       ############################################################
       - name: Build usuarios JAR
         run: |
-            cd MicroUsuarios/MicroUsuarios
-            mvn -B package -DskipTests
+          cd MicroUsuarios/MicroUsuarios
+          mvn -B package -DskipTests
 
       - name: Build usuarios image
-        run: docker build -t ghcr.io/${OWNER_LC}/usuarios:latest ./usuarios/usuario
+        run: docker build -t ghcr.io/${OWNER_LC}/usuarios:latest ./MicroUsuarios/MicroUsuarios
 
       ############################################################
       # LOGIN Y PUSH
