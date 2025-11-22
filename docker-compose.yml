@@ -1,0 +1,71 @@
+version: "3.9"
+
+services:
+  mysql:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: db_huertohogar
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  carrito:
+    image: carrito-service:latest
+    build:
+      context: ./carrito-microservice
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/db_huertohogar
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 1234
+    depends_on: []   # NOTA: Swarm lo ignora, lo dejo vacío para evitar errores
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  core:
+    image: core-service:latest
+    build:
+      context: ./core-microservicio
+    ports:
+      - "8081:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/db_huertohogar
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 1234
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  usuarios:
+    image: usuarios-service:latest
+    build:
+      context: ./MicroUsuarios/MicroUsuarios
+    ports:
+      - "8082:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/db_huertohogar
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 1234
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+volumes:
+  mysql-data:
