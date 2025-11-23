@@ -20,9 +20,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Set lowercase owner
-        run: echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
-
       ###############################################################
       # 1. BUILD CARRITO
       ###############################################################
@@ -32,7 +29,7 @@ jobs:
           mvn -B package -DskipTests
 
       - name: Build carrito Docker image
-        run: docker build -t ${{ secrets.ECR_REGISTRY }}/carrito:latest carrito-microservice
+        run: docker build -t ${{ secrets.ECR_REGISTRY }}/carrito:latest ./carrito-microservice
 
       ###############################################################
       # 2. BUILD CORE
@@ -43,7 +40,7 @@ jobs:
           mvn -B package -DskipTests
 
       - name: Build core Docker image
-        run: docker build -t ${{ secrets.ECR_REGISTRY }}/core:latest core-microservicio
+        run: docker build -t ${{ secrets.ECR_REGISTRY }}/core:latest ./core-microservicio
 
       ###############################################################
       # 3. BUILD USUARIOS
@@ -54,7 +51,7 @@ jobs:
           mvn -B package -DskipTests
 
       - name: Build usuarios Docker image
-        run: docker build -t ${{ secrets.ECR_REGISTRY }}/usuarios:latest MicroUsuarios/MicroUsuarios
+        run: docker build -t ${{ secrets.ECR_REGISTRY }}/usuarios:latest ./MicroUsuarios/MicroUsuarios
 
       ###############################################################
       # 4. LOGIN TO AWS
