@@ -1,4 +1,4 @@
-name: CI-CD Backend AWS
+name: CI-CD Backend
 
 on:
   push:
@@ -7,12 +7,15 @@ on:
       - develop
 
 jobs:
-  build-and-deploy:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+
+      - name: Set OWNER_LC env
+        run: echo "OWNER_LC=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -20,61 +23,51 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      ###############################################################
-      # 1. BUILD CARRITO
-      ###############################################################
+      ############################################################
+      # CARPETA: CARRITO
+      ############################################################
       - name: Build carrito JAR
         run: |
           cd carrito-microservice
           mvn -B package -DskipTests
 
-      - name: Build carrito Docker image
-        run: docker build -t ${{ secrets.ECR_REGISTRY }}/carrito:latest ./carrito-microservice
+      - name: Build carrito image
+        run: docker build -t ghcr.io/${OWNER_LC}/carrito:latest ./carrito-microservice
 
-      ###############################################################
-      # 2. BUILD CORE
-      ###############################################################
+      ############################################################
+      # CARPETA: CORE
+      ############################################################
       - name: Build core JAR
         run: |
           cd core-microservicio
           mvn -B package -DskipTests
 
-      - name: Build core Docker image
-        run: docker build -t ${{ secrets.ECR_REGISTRY }}/core:latest ./core-microservicio
+      - name: Build core image
+        run: docker build -t ghcr.io/${OWNER_LC}/core:latest ./core-microservicio
 
-      ###############################################################
-      # 3. BUILD USUARIOS
-      ###############################################################
+      ############################################################
+      # CARPETA: USUARIOS
+      ############################################################
       - name: Build usuarios JAR
         run: |
           cd MicroUsuarios/MicroUsuarios
           mvn -B package -DskipTests
 
-      - name: Build usuarios Docker image
-        run: docker build -t ${{ secrets.ECR_REGISTRY }}/usuarios:latest ./MicroUsuarios/MicroUsuarios
+      - name: Build usuarios image
+        run: docker build -t ghcr.io/${OWNER_LC}/usuarios:latest ./MicroUsuarios/MicroUsuarios
 
-      ###############################################################
-      # 4. LOGIN TO AWS
-      ###############################################################
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      ############################################################
+      # LOGIN Y PUSH
+      ############################################################
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Login to ECR
-        run: aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
-              | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
-
-      ###############################################################
-      # 5. PUSH DOCKER IMAGES TO ECR
-      ###############################################################
-      - name: Push carrito image
-        run: docker push ${{ secrets.ECR_REGISTRY }}/carrito:latest
-
-      - name: Push core image
-        run: docker push ${{ secrets.ECR_REGISTRY }}/core:latest
-
-      - name: Push usuarios image
-        run: docker push ${{ secrets.ECR_REGISTRY }}/usuarios:latest
+      - name: Push images to GHCR
+        run: |
+          docker push ghcr.io/${OWNER_LC}/carrito:latest
+          docker push ghcr.io/${OWNER_LC}/core:latest
+          docker push ghcr.io/${OWNER_LC}/usuarios:latest
