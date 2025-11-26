@@ -94,7 +94,7 @@ jobs:
         run: docker push ${{ secrets.ECR_REGISTRY }}/usuarios:latest
 
       ###############################################################
-      # Update ECS services (Opción 1: check dentro del run)
+      # Update ECS services (Opción 1: check dentro del run) s
       ###############################################################
 
       - name: Update carrito service
