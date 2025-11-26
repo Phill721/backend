@@ -1,0 +1,118 @@
+name: CI-CD Backend AWS (build -> ECR -> ECS update)
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+env:
+  # si prefieres, pon defaults; values serán sobreescritos por secrets cuando corra
+  ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}    # ejemplo: backend-cluster
+  ECS_SERVICE_CARRITO: carrito-service
+  ECS_SERVICE_CORE: core-service
+  ECS_SERVICE_USUARIOS: usuarios-service
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      ###############################################################
+      # Build jars (one per microservice)
+      ###############################################################
+      - name: Build carrito JAR
+        working-directory: ./carrito-microservice
+        run: mvn -B package -DskipTests
+
+      - name: Build core JAR
+        working-directory: ./core-microservicio
+        run: mvn -B package -DskipTests
+
+      - name: Build usuarios JAR
+        working-directory: ./MicroUsuarios/MicroUsuarios
+        run: mvn -B package -DskipTests
+
+      ###############################################################
+      # Configure AWS creds
+      ###############################################################
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to ECR (Docker)
+        run: |
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
+            | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
+
+      ###############################################################
+      # Ensure repos exist (idempotent-ish)
+      ###############################################################
+      - name: Ensure ECR repos exist
+        run: |
+          for repo in carrito core usuarios; do
+            if ! aws ecr describe-repositories --repository-names "$repo" >/dev/null 2>&1; then
+              echo "Creating ECR repo: $repo"
+              aws ecr create-repository --repository-name "$repo" || true
+            else
+              echo "Repo $repo exists"
+            fi
+          done
+
+      ###############################################################
+      # Build + push images
+      ###############################################################
+      - name: Build carrito image
+        run: docker build -t ${{ secrets.ECR_REGISTRY }}/carrito:latest ./carrito-microservice
+
+      - name: Push carrito image
+        run: docker push ${{ secrets.ECR_REGISTRY }}/carrito:latest
+
+      - name: Build core image
+        run: docker build -t ${{ secrets.ECR_REGISTRY }}/core:latest ./core-microservicio
+
+      - name: Push core image
+        run: docker push ${{ secrets.ECR_REGISTRY }}/core:latest
+
+      - name: Build usuarios image
+        run: docker build -t ${{ secrets.ECR_REGISTRY }}/usuarios:latest ./MicroUsuarios/MicroUsuarios
+
+      - name: Push usuarios image
+        run: docker push ${{ secrets.ECR_REGISTRY }}/usuarios:latest
+
+      ###############################################################
+      # Update ECS services (force new deployment)
+      # This assumes your Task Definitions reference the image tags
+      # e.g. 251740.../carrito:latest and service exists in ECS
+      ###############################################################
+      - name: Update carrito service (ECS)
+        if: ${{ secrets.ECS_CLUSTER != '' }}
+        run: |
+          echo "Updating carrito service..."
+          aws ecs update-service --cluster "${{ secrets.ECS_CLUSTER }}" --service "${{ env.ECS_SERVICE_CARRITO }}" --force-new-deployment || true
+
+      - name: Update core service (ECS)
+        if: ${{ secrets.ECS_CLUSTER != '' }}
+        run: |
+          echo "Updating core service..."
+          aws ecs update-service --cluster "${{ secrets.ECS_CLUSTER }}" --service "${{ env.ECS_SERVICE_CORE }}" --force-new-deployment || true
+
+      - name: Update usuarios service (ECS)
+        if: ${{ secrets.ECS_CLUSTER != '' }}
+        run: |
+          echo "Updating usuarios service..."
+          aws ecs update-service --cluster "${{ secrets.ECS_CLUSTER }}" --service "${{ env.ECS_SERVICE_USUARIOS }}" --force-new-deployment || true
