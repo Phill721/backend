@@ -6,4 +6,4 @@ COPY target/core-microservicio-0.0.1-SNAPSHOT.jar core.jar
 
 EXPOSE 8080
 
-CMD ["java", "-jar", "carrito.jar"]
+CMD ["java", "-jar", "core.jar"]
