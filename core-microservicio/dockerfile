@@ -2,7 +2,7 @@ FROM eclipse-temurin:17-jdk
 
 WORKDIR /app
 
-COPY target/*.jar core.jar
+COPY target/core-microservicio-0.0.1-SNAPSHOT.jar core.jar
 
 EXPOSE 8080
 

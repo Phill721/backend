@@ -2,7 +2,7 @@ FROM eclipse-temurin:17-jdk
 
 WORKDIR /app
 
-COPY target/*.jar usuarios.jar
+COPY target/MicroUsuarios-0.0.1-SNAPSHOT.jar usuarios.jar
 
 EXPOSE 8080
 
